@@ -23,8 +23,18 @@ Game.Screen.startScreen = {
 }
 
 Game.Screen.playScreen = {
+    _map: null,
     enter: function() {
-        console.log('Entered the play screen.');
+        let map = [];
+        for (let i = 0; i < 80; i++) {
+            //create the nested array for the y-values
+            map.push([]);
+            for (let y = 0; y < 24; y++) {
+                map[i].push(Game)
+                
+            }            
+        }
+        // console.log('Entered the play screen.');
     },
     exit: function() {
         console.log('Exited the play screen.');
