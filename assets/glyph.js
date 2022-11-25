@@ -22,13 +22,13 @@ Game.Glyph = class {
         this._foreground = foreground || 'white';
         this._background = background || 'black'
     }
-    getChar() {
+    get char() {
         return this._char;
     }
-    getBackground() {
+    get background() {
         return this._background;
     }
-    getForeground() {
+    get foreground() {
         return this._foreground;
     }
 }

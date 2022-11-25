@@ -25,23 +25,53 @@ Game.Screen.startScreen = {
 Game.Screen.playScreen = {
     _map: null,
     enter: function() {
+        console.log('entered the play screen.');
         let map = [];
-        for (let i = 0; i < 80; i++) {
+        for (let x = 0; x < 80; x++) {
             //create the nested array for the y-values
             map.push([]);
             for (let y = 0; y < 24; y++) {
-                map[i].push(Game)
-                
+                map[x].push(Game.Tile.nullTile);
             }            
         }
-        // console.log('Entered the play screen.');
+        // Setup the map generator
+        console.log('MAP -- ', map);
+        const generator = new ROT.Map.Cellular(80, 24);
+        generator.randomize(0.5);
+        const totalIterations = 3;
+        //iteratively smoothen the map
+        for (let i = 0; i < totalIterations; i++) {
+            generator.create();
+        }
+        //smoothen it one last time and then update our map
+        generator.create(function(x,y,v) {
+            if (v === 1) {
+                map[x][y] = Game.Tile.floorTile;
+            } else {
+                map[x][y] = Game.Tile.wallTile;
+            }
+        });
+        //create our map from the tiles
+        console.log('CREATED MAP::: ', JSON.stringify(map));
+        this._map = new Game.Map(map);
     },
     exit: function() {
         console.log('Exited the play screen.');
     },
     render: function(display) {
-        display.drawText(3, 5, "%c{red}%b{white}This game is so much fun!");
-        display.drawText(4, 6, 'Press [Enter] to win, or [Esc] to lose.');
+        // display.drawText(3, 5, "%c{red}%b{white}This game is so much fun!");
+        // display.drawText(4, 6, 'Press [Enter] to win, or [Esc] to lose.');
+        for (let x = 0; x < this._map.width; x++) {
+            for (let y = 0; y < this._map.height; y++) {
+                //fetch the glyph for the tile and render it to screen
+                console.log('GET TILE::', this._map.getTile(x, y), 'X', x, 'Y', y);
+                const glyph = this._map.getTile(x, y).glyph;
+                console.log('GLYPH:::', glyph);
+                // console.log('drawing stuff');
+                // console.log('DRAWING', 'X::', x, 'Y::', y, 'CHAR::', Game.Glyph.char, 'FOREGROUND::', Game.Glyph.foreground, 'BACKGROUND::', Game.Glyph.background);
+                display.draw(x, y, glyph.char, glyph.foreground, glyph.background);
+            }
+        }
     },
     handleInput: function(inputType, inputData) {
         if (inputType === 'keydown') {

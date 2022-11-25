@@ -35,3 +35,7 @@ Game.Tile = class {
 Game.Tile.nullTile = new Game.Tile(new Game.Glyph());
 Game.Tile.floorTile = new Game.Tile(new Game.Glyph('.'));
 Game.Tile.wallTile = new Game.Tile(new Game.Glyph('#', 'goldenrod'));
+
+console.log('Game.Tile -- ', Game.Tile);
+console.log('Game.Tile.floorTile -- ', Game.Tile.floorTile);
+console.log('Game', Game);
