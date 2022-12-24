@@ -1,8 +1,13 @@
 const Game = {
   _display: null,
   _currentScreen: null,
+  _screenWidth: 80,
+  _screenHeight: 24,
   init: function() {
-    this._display = new ROT.Display({width: 80, height: 24});
+    this._display = new ROT.Display({width: this._screenWidth, height: this._screenHeight});
+    this._display.setOptions({
+      fontSize: 24,
+    })
     //create a helper function for binding to an event
     //and making it send it to the screen
     let game = this; // so that we dont lose this
@@ -11,17 +16,28 @@ const Game = {
         //when an event is received send it to the screen
         //if there is one
         if (game._currentScreen !== null) {
+          //send the event type and data to the screen
           game._currentScreen.handleInput(event, e);
+          //clear the screen
+          game._display.clear();
+          //render the screen
+          game._currentScreen.render(game._display)
         }
       });
     }
     //bind keyboard input events
     bindEventToScreen('keydown');
-    bindEventToScreen('keyup');
-    bindEventToScreen('keypress');
+    // bindEventToScreen('keyup');
+    // bindEventToScreen('keypress');
   },
   getDisplay: function() {
     return this._display
+  },
+  getScreenWidth: function () {
+    return this._screenWidth
+  },
+  getScreenHeight: function () {
+    return this._screenHeight
   },
   switchScreen: function(screen) {
     console.log('HITTING SWITCH SCREEN');
