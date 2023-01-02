@@ -14,12 +14,18 @@
 //     }
 // }
 
-Game.Tile = class {
-    constructor(glyph) {
-        this._glyph = glyph;
+Game.Tile = class extends Game.Glyph {
+
+    constructor(props) {
+        super(props);
+        this._isWalkable = props['isWalkable'] || false;
+        this._isDiggable = props['isDiggable'] || false;
     }
-    get glyph() {
-        return this._glyph;
+    get isWalkable() {
+        return this._isWalkable;
+    }
+    get isDiggable() {
+        return this._isDiggable;
     }
 }
 
@@ -32,10 +38,8 @@ Game.Tile = class {
 //     }
 // }
 
-Game.Tile.nullTile = new Game.Tile(new Game.Glyph());
-Game.Tile.floorTile = new Game.Tile(new Game.Glyph('.'));
-Game.Tile.wallTile = new Game.Tile(new Game.Glyph('#', 'goldenrod'));
+Game.Tile.nullTile = new Game.Tile({});
+Game.Tile.floorTile = new Game.Tile({char: '.', isWalkable: true});
+Game.Tile.wallTile = new Game.Tile({char: '#', foreground: 'goldenrod', isDiggable: true});
 
-console.log('Game.Tile -- ', Game.Tile);
-console.log('Game.Tile.floorTile -- ', Game.Tile.floorTile);
-console.log('Game', Game);
+

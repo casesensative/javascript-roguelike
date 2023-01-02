@@ -24,13 +24,16 @@ Game.Screen.startScreen = {
 
 Game.Screen.playScreen = {
     _map: null,
-    _centerX: 0,
-    _centerY: 0,
+    _player: null,
     move: function(dx, dy) {
-        this._centerX = Math.max(0, Math.min(this._map.width - 1, this._centerX + dx));
-        console.log ('DY::: ', dy, 'map height :::', this._map.height - 1, 'centerY ::: ', this._centerY);
-        this._centerY = Math.max(0, Math.min(this._map.height - 1, this._centerY + dy));
-        console.log('RESULTS:::', Math.max(0, Math.min(this._map.height - 1, this._centerY + dy)))
+        const newX = this._player.x + dx;
+        const newY = this._player.y + dy;
+        //try to move the player to the new cell
+        this._player.tryMove(newX, newY, this._map);
+        // this._centerX = Math.max(0, Math.min(this._map.width - 1, this._centerX + dx));
+        // console.log ('DY::: ', dy, 'map height :::', this._map.height - 1, 'centerY ::: ', this._centerY);
+        // this._centerY = Math.max(0, Math.min(this._map.height - 1, this._centerY + dy));
+        // console.log('RESULTS:::', Math.max(0, Math.min(this._map.height - 1, this._centerY + dy)))
     },
     enter: function() {
         console.log('entered the play screen.');
@@ -61,8 +64,12 @@ Game.Screen.playScreen = {
                 map[x][y] = Game.Tile.wallTile;
             }
         });
+        //create our player and set position
+        this._player = new Game.Entity(Game.PlayerTemplate);
         //create our map from the tiles
-                this._map = new Game.Map(map);
+        this._map = new Game.Map(map, this._player);
+        //start the maps engine
+        this._map.engine.start();
     },
     exit: function() {
         console.log('Exited the play screen.');
@@ -73,32 +80,38 @@ Game.Screen.playScreen = {
         const screenWidth = Game.getScreenWidth();
         const screenHeight = Game.getScreenHeight();
         //Make sure the X AXIS doesn't go to the left of the left bound
-        let topLeftX = Math.max(0, this._centerX - (screenWidth / 2));
+        let topLeftX = Math.max(0, this._player.x - (screenWidth / 2));
         //Make sure we still have enough space to fit an entire game screen
         topLeftX = Math.min(topLeftX, this._map.width - screenWidth);
         //Make sure the Y AXIS doesn't move above the top bound
-        let topLeftY = Math.max(0, this._centerY - (screenHeight / 2));
+        let topLeftY = Math.max(0, this._player.y - (screenHeight / 2));
         //Make sure we still have enough space to fit an entire game screen
         topLeftY = Math.min(topLeftY, this._map.height - screenHeight);
         //
         for (let x = topLeftX; x < topLeftX + screenWidth; x++) {
             for (let y = topLeftY; y < topLeftY + screenHeight; y++) {
                 //fetch the glyph for the tile and render it to screen
-                // console.log('GET TILE::', this._map.getTile(x, y), 'X', x, 'Y', y);
-                const glyph = this._map.getTile(x, y).glyph;
-                // console.log('GLYPH:::', glyph);
-                // console.log('drawing stuff');
-                // console.log('DRAWING', 'X::', x, 'Y::', y, 'CHAR::', Game.Glyph.char, 'FOREGROUND::', Game.Glyph.foreground, 'BACKGROUND::', Game.Glyph.background);
-                display.draw(x - topLeftX, y - topLeftY, glyph.char, glyph.foreground, glyph.background);
+                const tile = this._map.getTile(x, y);
+                display.draw(x - topLeftX, y - topLeftY, tile.char, tile.foreground, tile.background);
             }
         }
-        display.draw(
-            this._centerX - topLeftX,
-            this._centerY - topLeftY,
-            '@',
-            'white',
-            'black'
-        );
+        
+        const entities = this._map.entities;
+        for (let i = 0; i < entities.length; i++) {
+            const entity = entities[i];
+            //render entity if they are in screen bounds
+            if (entity.x >= topLeftX && entity.y >= topLeftY &&
+                entity.x < topLeftX + screenWidth && entity.y < topLeftY + screenHeight) {
+                    display.draw(
+                        entity.x - topLeftX,
+                        entity.y - topLeftY,
+                        entity.char,
+                        entity.foreground,
+                        entity.background
+                    )
+                }
+            
+        }
     },
     handleInput: function(inputType, inputData) {
         if (inputType === 'keydown') {
@@ -113,21 +126,22 @@ Game.Screen.playScreen = {
                     //movement
                 case ROT.KEYS.VK_A:
                     this.move(-1,0);
-                    console.log('PLAYER X ::: ', this._centerX, 'PLAYER Y ::: ', this._centerY);
+                    this._map.engine.unlock();
                     break;
                 case ROT.KEYS.VK_D:
                     this.move(1,0);
-                    console.log('PLAYER X ::: ', this._centerX, 'PLAYER Y ::: ', this._centerY);
+                    this._map.engine.unlock();
                     break;
                 case ROT.KEYS.VK_W:
                     this.move(0,-1);
-                    console.log('PLAYER X ::: ', this._centerX, 'PLAYER Y ::: ', this._centerY);
+                    this._map.engine.unlock();
                     break;
                 case ROT.KEYS.VK_S:
                     this.move(0,1);
-                    console.log('PLAYER X ::: ', this._centerX, 'PLAYER Y ::: ', this._centerY);
+                    this._map.engine.unlock();
                     break;
             }
+
         }
     }
 }

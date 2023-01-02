@@ -18,17 +18,15 @@ const Game = {
         if (game._currentScreen !== null) {
           //send the event type and data to the screen
           game._currentScreen.handleInput(event, e);
-          //clear the screen
-          game._display.clear();
-          //render the screen
-          game._currentScreen.render(game._display)
         }
       });
     }
     //bind keyboard input events
     bindEventToScreen('keydown');
-    // bindEventToScreen('keyup');
-    // bindEventToScreen('keypress');
+  },
+  refresh: function() {
+    this._display.clear();
+    this._currentScreen.render(this._display);
   },
   getDisplay: function() {
     return this._display
@@ -50,7 +48,7 @@ const Game = {
     this._currentScreen = screen;
     if (!this._currentScreen !== null) {
       this._currentScreen.enter();
-      this._currentScreen.render(this._display);
+      this.refresh();
     }
   }
 }

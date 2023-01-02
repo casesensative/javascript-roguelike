@@ -17,10 +17,10 @@
 
 
 Game.Glyph = class {
-    constructor(chr, foreground, background) {
-        this._char = chr || ' ';
-        this._foreground = foreground || 'white';
-        this._background = background || 'black'
+    constructor(props = {}) {
+        this._char = props['char'] || ' ';
+        this._foreground = props['foreground'] || 'white';
+        this._background = props['background'] || 'black'
     }
     get char() {
         return this._char;
