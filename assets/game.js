@@ -38,7 +38,6 @@ const Game = {
     return this._screenHeight;
   },
   switchScreen: function(screen) {
-    console.log('HITTING SWITCH SCREEN');
     //if we had a screen before -- notify it that we exited
     if (this._currentScreen !== null) {
       this._currentScreen.exit();

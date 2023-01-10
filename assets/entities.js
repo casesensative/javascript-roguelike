@@ -140,7 +140,6 @@ Game.AddOns.playerActor = {
         //re-render the screen
         Game.refresh();
         //lock engine and wait for player to press a key
-        console.log('locking engine');
         this.map.engine.lock();
         //clear message queue
         this.clearMessages();
