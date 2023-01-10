@@ -4,7 +4,7 @@ const Game = {
   _screenWidth: 80,
   _screenHeight: 24,
   init: function() {
-    this._display = new ROT.Display({width: this._screenWidth, height: this._screenHeight});
+    this._display = new ROT.Display({width: this._screenWidth, height: this._screenHeight + 1});
     this._display.setOptions({
       fontSize: 24,
     })
@@ -28,14 +28,14 @@ const Game = {
     this._display.clear();
     this._currentScreen.render(this._display);
   },
-  getDisplay: function() {
-    return this._display
+  get display() {
+    return this._display;
   },
-  getScreenWidth: function () {
-    return this._screenWidth
+  get screenWidth() {
+    return this._screenWidth;
   },
-  getScreenHeight: function () {
-    return this._screenHeight
+  get screenHeight() {
+    return this._screenHeight;
   },
   switchScreen: function(screen) {
     console.log('HITTING SWITCH SCREEN');
@@ -44,7 +44,7 @@ const Game = {
       this._currentScreen.exit();
     }
     //clear the display
-    this.getDisplay().clear();
+    this.display.clear();
     this._currentScreen = screen;
     if (!this._currentScreen !== null) {
       this._currentScreen.enter();
@@ -62,7 +62,7 @@ window.onload = () => {
   //initialize the game
   Game.init();
   //add the container to our HTML page
-  document.body.appendChild(Game.getDisplay().getContainer());
+  document.body.appendChild(Game.display.getContainer());
   //load the start screen
   Game.switchScreen(Game.Screen.startScreen);
 

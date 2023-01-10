@@ -1,22 +1,22 @@
 Game.Entity = class extends Game.Glyph {
-    constructor(glyph = {}) {
-        super(glyph);
-        this._name = glyph['name'] || '';
-        this._x = glyph['x'] || 0;
-        this._y = glyph['y'] || 0;
+    constructor(template = {}) {
+        super(template);
+        this._name = template['name'] || '';
+        this._x = template['x'] || 0;
+        this._y = template['y'] || 0;
         this._map = null;
         //object for tracking addOns to entities
         this._addOns = {};
         this._addOnsGroups = {};
         //set up addOns array to iterate
-        let addOns = glyph['addOns'] || [];
+        let addOns = template['addOns'] || [];
         //iterate through each addOn
         for (let i = 0; i < addOns.length; i++) {
             //for each addOn, add its keys to this entity
             for (const key in addOns[i]) {
                 if (key !== 'init' && key !== 'name' && !this.hasOwnProperty(key)) {
                     this[key] = addOns[i][key];                    
-                }
+                } 
             }
             //add the current addOns name for tracking all addons
             //attached to this entity
@@ -27,10 +27,12 @@ Game.Entity = class extends Game.Glyph {
             }
             //call the init function for the addon if it exists
             if (addOns[i].init) {
-                addOns[i].init(glyph);            
+                addOns[i].init.call(this, template);    
             }
         }
     }
+
+    
 
     //methods
     hasAddOn(addOn = {}) {

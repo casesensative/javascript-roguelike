@@ -1,5 +1,6 @@
 Game.Screen = {};
 
+
 //define our initial start screen
 Game.Screen.startScreen = {
     enter: function() {
@@ -66,10 +67,15 @@ Game.Screen.playScreen = {
         });
         //create our player and set position
         this._player = new Game.Entity(Game.PlayerTemplate);
+        console.log('PLAYER CREATED:', this._player);
         //create our map from the tiles
         this._map = new Game.Map(map, this._player);
         //start the maps engine
         this._map.engine.start();
+
+        //rexpaint map testing
+
+
     },
     exit: function() {
         console.log('Exited the play screen.');
@@ -77,8 +83,8 @@ Game.Screen.playScreen = {
     render: function(display) {
         // display.drawText(3, 5, "%c{red}%b{white}This game is so much fun!");
         // display.drawText(4, 6, 'Press [Enter] to win, or [Esc] to lose.');
-        const screenWidth = Game.getScreenWidth();
-        const screenHeight = Game.getScreenHeight();
+        const screenWidth = Game.screenWidth;
+        const screenHeight = Game.screenHeight;
         //Make sure the X AXIS doesn't go to the left of the left bound
         let topLeftX = Math.max(0, this._player.x - (screenWidth / 2));
         //Make sure we still have enough space to fit an entire game screen
@@ -112,6 +118,17 @@ Game.Screen.playScreen = {
                 }
             
         }
+        //render players messages
+        const messages = this._player.messages;
+        for (let i = 0; i < messages.length; i++) {
+            display.drawText(0, i, '%c{white}%b{black}' + messages[i]);
+        };
+        //render player hp
+        let stats = '%c{white}%b{black}';
+        stats += vsprintf('HP: %d/%d', [this._player.hp, this._player.maxhp]);
+        display.drawText(0, screenHeight, stats);
+
+
     },
     handleInput: function(inputType, inputData) {
         if (inputType === 'keydown') {

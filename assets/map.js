@@ -8,8 +8,8 @@ Game.Map = class {
         this._engine = new ROT.Engine(this._scheduler);
         //add the player
         this.addEntityRandomPosition(player);
-        //add random Fungus to map
-        for (let i = 0; i < 1000; i++) {
+        // add random Fungus to map
+        for (let i = 0; i < 100; i++) {
             this.addEntityRandomPosition(new Game.Entity(Game.FungusTemplate));
         }
     }
@@ -43,7 +43,7 @@ Game.Map = class {
         do {
             x = Math.floor(Math.random() * this._width);
             y = Math.floor(Math.random() * this._height);
-        } while(this.getTile(x, y) !== Game.Tile.floorTile || this.getEntityLocation(x, y));
+        } while (!this.isEmptyTile(x, y));
         return {x: x, y: y};
     }
     addEntity(ent) {
@@ -60,7 +60,22 @@ Game.Map = class {
             this._scheduler.add(ent, true);
         }
     }
+    removeEntity(ent) {
+        const index = this._entities.findIndex(e => e === ent);
+        if (index >= 0) {
+            this._entities.splice(index, 1);
+            if (ent.hasAddOn('actor')) {
+                this._scheduler.remove(ent)
+            };
+        };
+    }
+    isEmptyTile(x, y) {
+        //check if the tile is floor and has no entity
+        return this.getTile(x, y) === Game.Tile.floorTile && 
+            !this.getEntityLocation(x, y);
+    }
     addEntityRandomPosition(ent) {
+        console.log('FUNGUS TO ADD:::', ent);
         const position = this.getRandomFloorPosition();
         ent.x = position.x;
         ent.y = position.y;
@@ -76,5 +91,21 @@ Game.Map = class {
         return this._entities.find(ent => {
             return ent.x === x && ent.y === y
         });
+    }
+    getEntitiesInRadius(cx, cy, radius) {
+        let results = [];
+        const leftx = cx - radius;
+        const rightx = cx + radius;
+        const topy = cy - radius;
+        const boty = cy + radius;
+        for (let i = 0; i < this._entities.length; i++) {
+            if (this._entities[i].x >= leftx &&
+                this._entities[i].x <= rightx &&
+                this._entities[i].y >= topy &&
+                this._entities[i].y <= boty) {
+                    results.push(this._entities[i]);
+                }            
+        }
+        return results;
     }
 }
