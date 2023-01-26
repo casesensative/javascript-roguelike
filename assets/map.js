@@ -1,16 +1,19 @@
 Game.Map = class {
     constructor(tiles, player) {
         this._tiles = tiles;
-        this._width = tiles.length;
-        this._height = tiles[0].length;
+        this._depth = tiles.length;
+        this._width = tiles[0].length;
+        this._height = tiles[0][0].length;
         this._entities = [];
         this._scheduler = new ROT.Scheduler.Simple();
         this._engine = new ROT.Engine(this._scheduler);
         //add the player
-        this.addEntityRandomPosition(player);
+        this.addEntityRandomPosition(player, 0);
         // add random Fungus to map
-        for (let i = 0; i < 100; i++) {
-            this.addEntityRandomPosition(new Game.Entity(Game.FungusTemplate));
+        for (let z = 0; z < this._depth; z++) {
+            for (let i = 0; i < 25; i++) {
+                this.addEntityRandomPosition(new Game.Entity(Game.FungusTemplate), z)                
+            }            
         }
     }
     get width() {
@@ -19,6 +22,9 @@ Game.Map = class {
     get height() {
         return this._height;
     }
+    get depth() {
+        return this._depth;
+    }
     get engine() {
         return this._engine;
     }
@@ -26,29 +32,30 @@ Game.Map = class {
         return this._entities;
     }
 
-    getTile(x, y) {
-        if (x < 0 || x >= this._width || y < 0 || y >= this._height) {
+    getTile(x, y, z) {
+        if (x < 0 || x >= this._width || y < 0 || y >= this._height || z < 0 || z >= this._depth) {
             return Game.Tile.nullTile;
         } else {
-            return this._tiles[x][y] || Game.Tile.nullTile;
+            return this._tiles[z][x][y] || Game.Tile.nullTile;
         }
     }
-    dig(x, y) {
-        if (this.getTile(x, y).isDiggable) {
-            this._tiles[x][y] = Game.Tile.floorTile;
+    dig(x, y, z) {
+        if (this.getTile(x, y, z).isDiggable) {
+            this._tiles[z][x][y] = Game.Tile.floorTile;
         }
     }
-    getRandomFloorPosition() {
+    getRandomFloorPosition(z) {
         let x, y;
         do {
             x = Math.floor(Math.random() * this._width);
             y = Math.floor(Math.random() * this._height);
-        } while (!this.isEmptyTile(x, y));
-        return {x: x, y: y};
+        } while (!this.isEmptyTile(x, y, z));
+        return {x, y, z};
     }
     addEntity(ent) {
         if (ent.x < 0 || ent.x >= this._width ||
-            ent.y < 0 || ent.y >= this._height) {
+            ent.y < 0 || ent.y >= this._height || 
+            ent.z < 0 || ent.z >= this._depth) {
                 throw new Error ('adding entity out of bounds');
             }
         //update entities map
@@ -69,19 +76,19 @@ Game.Map = class {
             };
         };
     }
-    isEmptyTile(x, y) {
+    isEmptyTile(x, y, z) {
         //check if the tile is floor and has no entity
-        return this.getTile(x, y) === Game.Tile.floorTile && 
-            !this.getEntityLocation(x, y);
+        return this.getTile(x, y, z) === Game.Tile.floorTile && 
+            !this.getEntityLocation(x, y, z);
     }
-    addEntityRandomPosition(ent) {
-        console.log('FUNGUS TO ADD:::', ent);
-        const position = this.getRandomFloorPosition();
+    addEntityRandomPosition(ent, z) {
+        const position = this.getRandomFloorPosition(z);
         ent.x = position.x;
         ent.y = position.y;
+        ent.z = position.z
         this.addEntity(ent);
     }
-    getEntityLocation(x, y) {
+    getEntityLocation(x, y, z) {
         //find entities at given position
         // for (let i = 0; i < this._entities.length; i++) {
         //     if (this._entities[i].x === x && this._entities[i].y === y) {
@@ -89,10 +96,10 @@ Game.Map = class {
         //     }
         // }
         return this._entities.find(ent => {
-            return ent.x === x && ent.y === y
+            return ent.x === x && ent.y === y && ent.z === z
         });
     }
-    getEntitiesInRadius(cx, cy, radius) {
+    getEntitiesInRadius(cx, cy, cz, radius) {
         let results = [];
         const leftx = cx - radius;
         const rightx = cx + radius;
@@ -102,7 +109,8 @@ Game.Map = class {
             if (this._entities[i].x >= leftx &&
                 this._entities[i].x <= rightx &&
                 this._entities[i].y >= topy &&
-                this._entities[i].y <= boty) {
+                this._entities[i].y <= boty && 
+                this._entities[i].z === cz) {
                     results.push(this._entities[i]);
                 }            
         }

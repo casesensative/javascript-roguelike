@@ -4,6 +4,7 @@ Game.Entity = class extends Game.Glyph {
         this._name = template['name'] || '';
         this._x = template['x'] || 0;
         this._y = template['y'] || 0;
+        this._z = template['z'] || 0;
         this._map = null;
         //object for tracking addOns to entities
         this._addOns = {};
@@ -43,6 +44,12 @@ Game.Entity = class extends Game.Glyph {
         }
     };
 
+    setPosition(x, y, z) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+
     //getters and setters
 
     set name(name) {
@@ -53,6 +60,9 @@ Game.Entity = class extends Game.Glyph {
     }
     set y(y) {
         this._y = y;
+    }
+    set z(z) {
+        this._z = z;
     }
     set map(map) {
         this._map = map;
@@ -68,5 +78,8 @@ Game.Entity = class extends Game.Glyph {
     }
     get y() {
         return this._y;
+    }
+    get z() {
+        return this._z;
     }
 }

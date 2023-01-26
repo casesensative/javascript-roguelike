@@ -38,8 +38,28 @@ Game.Tile = class extends Game.Glyph {
 //     }
 // }
 
+Game.randomizeArray = function(arr) {
+    arr.sort(() => Math.random() - 0.5);
+    return arr;
+}
+
+Game.getNeighborPositions = function(x, y) {
+    let tiles = [];
+    for (let dx = -1; dx < 2; dx++) {
+        for (let dy = -1; dy < 2; dy++) {
+            if (dx === 0 && dy === 0) {
+                continue;
+            }
+            tiles.push({x: x + dx, y: y + dy});
+        }      
+    }
+    return Game.randomizeArray(tiles);
+}
+
 Game.Tile.nullTile = new Game.Tile({});
 Game.Tile.floorTile = new Game.Tile({char: '.', isWalkable: true});
 Game.Tile.wallTile = new Game.Tile({char: '#', foreground: 'goldenrod', isDiggable: true});
+Game.Tile.stairsUpTile = new Game.Tile({char: '<', foreground: 'white', isWalkable: true});
+Game.Tile.stairsDownTile = new Game.Tile({char: '>', foreground: 'white', isWalkable: true});
 
 

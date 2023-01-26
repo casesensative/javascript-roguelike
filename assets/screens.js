@@ -26,50 +26,55 @@ Game.Screen.startScreen = {
 Game.Screen.playScreen = {
     _map: null,
     _player: null,
-    move: function(dx, dy) {
+    move: function(dx, dy, dz) {
         const newX = this._player.x + dx;
         const newY = this._player.y + dy;
+        const newZ = this._player.z + dz;
         //try to move the player to the new cell
-        this._player.tryMove(newX, newY, this._map);
+        this._player.tryMove(newX, newY, newZ, this._map);
         // this._centerX = Math.max(0, Math.min(this._map.width - 1, this._centerX + dx));
         // console.log ('DY::: ', dy, 'map height :::', this._map.height - 1, 'centerY ::: ', this._centerY);
         // this._centerY = Math.max(0, Math.min(this._map.height - 1, this._centerY + dy));
         // console.log('RESULTS:::', Math.max(0, Math.min(this._map.height - 1, this._centerY + dy)))
     },
     enter: function() {
-        console.log('entered the play screen.');
-        let map = [];
-        const mapWidth = 500;
-        const mapHeight = 500;
-        for (let x = 0; x < mapWidth; x++) {
-            //create the nested array for the y-values
-            map.push([]);
-            for (let y = 0; y < mapHeight; y++) {
-                map[x].push(Game.Tile.nullTile);
-            }            
-        }
+        const width = 100;
+        const height = 48;
+        const depth = 6;
+        const tiles = new Game.Builder(width, height, depth).tiles;
+        // let map = [];
+        // const mapWidth = 500;
+        // const mapHeight = 500;
+        // for (let x = 0; x < mapWidth; x++) {
+        //     //create the nested array for the y-values
+        //     map.push([]);
+        //     for (let y = 0; y < mapHeight; y++) {
+        //         map[x].push(Game.Tile.nullTile);
+        //     }            
+        // }
+
+
         // Setup the map generator
         // console.log('MAP -- ', map);
-        const generator = new ROT.Map.Cellular(mapWidth, mapHeight);
-        generator.randomize(0.5);
-        const totalIterations = 3;
+        // const generator = new ROT.Map.Cellular(mapWidth, mapHeight);
+        // generator.randomize(0.5);
+        // const totalIterations = 3;
         //iteratively smoothen the map
-        for (let i = 0; i < totalIterations - 1; i++) {
-            generator.create();
-        }
+        // for (let i = 0; i < totalIterations - 1; i++) {
+        //     generator.create();
+        // }
         //smoothen it one last time and then update our map
-        generator.create(function(x,y,v) {
-            if (v === 1) {
-                map[x][y] = Game.Tile.floorTile;
-            } else {
-                map[x][y] = Game.Tile.wallTile;
-            }
-        });
+        // generator.create(function(x,y,v) {
+        //     if (v === 1) {
+        //         map[x][y] = Game.Tile.floorTile;
+        //     } else {
+        //         map[x][y] = Game.Tile.wallTile;
+        //     }
+        // });
         //create our player and set position
         this._player = new Game.Entity(Game.PlayerTemplate);
-        console.log('PLAYER CREATED:', this._player);
         //create our map from the tiles
-        this._map = new Game.Map(map, this._player);
+        this._map = new Game.Map(tiles, this._player);
         //start the maps engine
         this._map.engine.start();
 
@@ -97,7 +102,7 @@ Game.Screen.playScreen = {
         for (let x = topLeftX; x < topLeftX + screenWidth; x++) {
             for (let y = topLeftY; y < topLeftY + screenHeight; y++) {
                 //fetch the glyph for the tile and render it to screen
-                const tile = this._map.getTile(x, y);
+                const tile = this._map.getTile(x, y, this._player.z);
                 display.draw(x - topLeftX, y - topLeftY, tile.char, tile.foreground, tile.background);
             }
         }
@@ -107,7 +112,8 @@ Game.Screen.playScreen = {
             const entity = entities[i];
             //render entity if they are in screen bounds
             if (entity.x >= topLeftX && entity.y >= topLeftY &&
-                entity.x < topLeftX + screenWidth && entity.y < topLeftY + screenHeight) {
+                entity.x < topLeftX + screenWidth && entity.y < topLeftY + screenHeight &&
+                entity.z === this._player.z) {
                     display.draw(
                         entity.x - topLeftX,
                         entity.y - topLeftY,
@@ -119,8 +125,10 @@ Game.Screen.playScreen = {
             
         }
         //render players messages
-        const messages = this._player.messages;
+        let messages = this._player.messages;
+        console.log('MESSAGES', messages);
         for (let i = 0; i < messages.length; i++) {
+            console.log(`Message ${i}`, messages[i]);
             display.drawText(0, i, '%c{white}%b{black}' + messages[i]);
         };
         //render player hp
@@ -142,23 +150,37 @@ Game.Screen.playScreen = {
                     break;
                     //movement
                 case ROT.KEYS.VK_A:
-                    this.move(-1,0);
+                    this.move(-1,0,0);
                     this._map.engine.unlock();
                     break;
                 case ROT.KEYS.VK_D:
-                    this.move(1,0);
+                    this.move(1,0,0);
                     this._map.engine.unlock();
                     break;
                 case ROT.KEYS.VK_W:
-                    this.move(0,-1);
+                    this.move(0,-1,0);
                     this._map.engine.unlock();
                     break;
                 case ROT.KEYS.VK_S:
-                    this.move(0,1);
+                    this.move(0,1,0);
                     this._map.engine.unlock();
                     break;
             }
 
+        } else if (inputType === 'keypress') {
+            switch(String.fromCharCode(inputData.charCode)) {
+                case '<' :
+                    this.move(0,0,-1);
+                    this._map.engine.unlock();
+                    break;
+                case '>' :
+                    this.move(0,0,1);
+                    this._map.engine.unlock();
+                    break;
+                default:
+                    this._map.engine.unlock();
+                    return false;
+            }
         }
     }
 }

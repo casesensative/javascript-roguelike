@@ -23,6 +23,8 @@ const Game = {
     }
     //bind keyboard input events
     bindEventToScreen('keydown');
+    //bindEventToScreen('keyup');
+    bindEventToScreen('keypress');
   },
   refresh: function() {
     this._display.clear();

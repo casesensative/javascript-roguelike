@@ -2,6 +2,7 @@ Game.AddOns = {};
 Game.sendMessage = function(recipient, msg, args) {
     //check to see if recipient can receive messages
     if (recipient.hasAddOn(Game.AddOns.messageRecipient)) {
+        console.log('can receive');
         //if args are present -- format msg
         if (args) {
             msg = vsprintf(msg, args);
@@ -9,13 +10,13 @@ Game.sendMessage = function(recipient, msg, args) {
         recipient.receiveMessage(msg);
     }
 }
-Game.sendMessageNearby = function(map, cx, cy, msg, args) {
+Game.sendMessageNearby = function(map, cx, cy, cz, msg, args) {
    //format msg if needed
     if (args) {
     msg = vsprintf(msg, args);
    };
    //get nearby entities
-    const entities = map.getEntitiesInRadius(cx, cy, 5);
+    const entities = map.getEntitiesInRadius(cx, cy, cz, 5);
    //iterate through ents - send msg if they can receive
     for (let i = 0; i < entities.length; i++) {
         if (entities[i].hasAddOn(Game.AddOns.messageRecipient)) {
@@ -26,12 +27,30 @@ Game.sendMessageNearby = function(map, cx, cy, msg, args) {
 
 Game.AddOns.moveable = {
     name: 'moveable',
-    tryMove: function(x, y, map) {
+    tryMove: function(x, y, z, map) {
+        map = this.map;
         //get the tile we want to check
-        const tile = map.getTile(x, y);
+        const tile = map.getTile(x, y, this.z);
         //check if tile is occupied by an entity
-        const target = map.getEntityLocation(x, y);
-        if (target) {
+        const target = map.getEntityLocation(x, y, this.z);
+        
+        console.log('Z::', z, 'THIS.Z::', this.z);
+
+        if (z < this.z) {
+            if (tile !== Game.Tile.stairsUpTile) {
+                Game.sendMessage(this, "You can't go up here!");
+            } else {
+                Game.sendMessage(this, "You ascend to level %d", [z + 1]);
+                this.setPosition(x, y, z);
+            }
+        } else if (z > this.z) {
+            if (tile !== Game.Tile.stairsDownTile) {
+                Game.sendMessage(this, "You can't go down here!");
+            } else {
+                this.setPosition(x, y, z);
+                Game.sendMessage(this, "You descend to level %d!", [z + 1])
+            }
+        } else if (target) {
             //attack if occupied by entity and can be attacked
             if (this.hasAddOn('attacker') && target.hasAddOn('canDestroy')) {
                 this.attack(target);
@@ -42,12 +61,12 @@ Game.AddOns.moveable = {
         } else if (tile.isWalkable) {
         // check if we can walk onto tile, and if so
         //move our x and y to the tile
-            this._x = x;
-            this._y = y;
+        // console.log('walkable');
+            this.setPosition(x, y, z);
             return true;
         } else if (tile.isDiggable) {
         //if tile isnt walkable but is diggable, dig it
-            map.dig(x, y);
+            map.dig(x, y, z);
             return true;
         };
         return false;
@@ -105,6 +124,7 @@ Game.AddOns.attacker = {
             const def = target.def;
             const max = Math.max(0, atk-def);
             const dam = 1 + Math.floor(Math.random() * max);
+            console.log('before adding attack msg');
             Game.sendMessage(this, 'You strike the %s for %d damage!', [target.name, dam]);
             Game.sendMessage(target, 'The %s strikes you for %d damage!', [this.name, dam]);
             target.takeDamage(this, dam);
@@ -140,8 +160,10 @@ Game.AddOns.playerActor = {
         //re-render the screen
         Game.refresh();
         //lock engine and wait for player to press a key
+        console.log('locking the engine and waiting for player input');
         this.map.engine.lock();
         //clear message queue
+        console.log('clearing message queue');
         this.clearMessages();
     }
 }
@@ -150,7 +172,7 @@ Game.AddOns.fungusActor = {
     name: 'fungusActor',
     groupName: 'actor',
     init: function() {
-        this._growthsRemaining = 5;
+        this._growthsRemaining = 1;
     },
     act: function() {
         if (this._growthsRemaining > 0) {
@@ -158,13 +180,12 @@ Game.AddOns.fungusActor = {
                 const xoffset = Math.floor(Math.random() * 3) - 1; 
                 const yoffset = Math.floor(Math.random() * 3) - 1; 
                 if (xoffset !== 0 || yoffset || 0) {
-                    if (this.map.isEmptyTile(this.x + xoffset, this.y + yoffset)) {   
+                    if (this.map.isEmptyTile(this.x + xoffset, this.y + yoffset, this.z)) {   
                         const fungus = new Game.Entity(Game.FungusTemplate);
-                        fungus.x = this.x + xoffset;
-                        fungus.y = this.y + yoffset;
+                        fungus.setPosition(this.x + xoffset, this.y + yoffset, this.z);
                         this.map.addEntity(fungus);
                         this._growthsRemaining -= 1;
-                        Game.sendMessageNearby(this.map, fungus.x, fungus.y, 'The fungus is spreading!');
+                        Game.sendMessageNearby(this.map, fungus.x, fungus.y, fungus.z, 'The fungus is spreading!');
                     }
                 }
             }
